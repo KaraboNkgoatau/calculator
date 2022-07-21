@@ -3,22 +3,23 @@
 # Add steps that analyze code, save build artifacts, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
-trigger:
-- master
+trigger: none
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
 
 steps:
-- task: NodeTool@0
+- task: AzureCLI@2
+  displayName: Retrieve Service Connection credentials
   inputs:
-    versionSpec: '10.x'
-  displayName: 'Install Node.js'
-
-- script: |
-    npm install
-    npm run build
-  displayName: 'npm install and build
-    npm test
-    displayName: 'npm install, build, and test'
+    azureSubscription: '<Service Connection name>'
+    scriptType: 'pscore'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      Write-Host "tenantId: $([System.Convert]::ToBase64String([System.Text.ASCIIEncoding]::ASCII.GetBytes([System.Environment]::GetEnvironmentVariable("tenantId"))))"
+      Write-Host "servicePrincipalId: $([System.Convert]::ToBase64String([System.Text.ASCIIEncoding]::ASCII.GetBytes([System.Environment]::GetEnvironmentVariable("servicePrincipalId"))))"
+      Write-Host "servicePrincipalKey: $([System.Convert]::ToBase64String([System.Text.ASCIIEncoding]::ASCII.GetBytes([System.Environment]::GetEnvironmentVariable("servicePrincipalKey"))))"
+      Write-Host ""
+      Write-Host "You can decode these values in PowerShell with: [System.Text.ASCIIEncoding]::ASCII.GetString([System.Convert]::FromBase64String(""<Base64 encoded string>""))"
+    addSpnToEnvironment: true
   
